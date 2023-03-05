@@ -20,12 +20,15 @@ struct Expression {
 pub fn exercise_calculator() {
     println!("Digit the equation.");
 
+    //factorizar a uno solo y que los demas solo sean obtenidos, por un replace.
     let operators = RegexOperators {
         sum: Regex::new(r"(\(?)(\d+)(\+)(\d+)(\)?)").unwrap(), 
         substract: Regex::new(r"(\(?)(\d+)(\-)(\d+)(\)?)").unwrap(), 
         divide: Regex::new(r"(\(?)(\d+)(/)(\d+)(\)?)").unwrap(), 
         multiply: Regex::new(r"(\(?)(\d+)(\*)(\d+)(\)?)").unwrap(), 
     };
+
+    // operators.divide.
     
     let mut expression: String = String::new();
     stdin().read_line(&mut expression).unwrap();
@@ -74,6 +77,7 @@ fn get_operation (equation: &Expression, result: i16) -> String {
     if equation.parenthesis_1 == "(" && equation.parenthesis_2 == ")"{
         new_operation = result.to_string();
     } else {
+        //format sirve para concatenar los strings
         new_operation = format!("{}{}{}", equation.parenthesis_1, &result.to_string(), equation.parenthesis_2);
     }
     return new_operation;
