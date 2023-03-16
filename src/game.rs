@@ -1,4 +1,4 @@
-use csv::{ReaderBuilder, StringRecord};
+use csv::{ReaderBuilder, StringRecord, Reader};
 use std::{io::stdin, fs, io::Error, collections::HashMap};
 
 const FILE_NAME: &str = "history.csv";
@@ -99,8 +99,33 @@ fn update_health (health: &mut Vec<char>, health_change: &i16) {
     }
 }
 
+fn choose_path (paths: &Vec<Row>, index: usize, current_tag: &mut String) {
+    let chosen = paths.get(index);
+    match chosen {
+        Some(value) => {
+            current_tag.clear();
+            current_tag.push_str(&value.tag);
+            // current_tag = &value.tag;
+            // current_tag = &value.tag;
+        },
+        None => println!("Camino incorrecto :c, elige otro :D"),
+    }
+}
+
+fn add_data (reader: &mut Reader<&[u8]>, data: &mut HashMap<String, Row>, last_tag: &mut String) {
+    for result in reader.records() {
+        match result {
+            Ok(iter) => {
+                let row = Row::new(iter);
+                insert_data(row, &mut *data, &mut *last_tag);
+            },
+            Err(error) => println!("Error: {error}"),
+        };
+    }
+}
+
 pub fn game() { 
-    let mut current_tag: &str = FIRST_TAG;
+    let mut current_tag = FIRST_TAG.to_owned();
     let mut last_tag = String::new();
     let mut input = String::new();
     let mut selected_index: usize;
@@ -115,19 +140,9 @@ pub fn game() {
                 delimiter(b';').
                 from_reader(content.as_bytes());
 
-            for result in reader_result.records() {
-                match result {
-                    Ok(iter) => {
-                        let row = Row::new(iter);
-                        insert_data(row, &mut data, &mut last_tag);
-                    },
-                    Err(error) => println!("Error: {error}"),
-                };
-            }
-            
+            add_data(&mut reader_result, &mut data, &mut last_tag);
             loop {
-                let situation_op = data.get(current_tag);
-
+                let situation_op = data.get(&current_tag);
                 match situation_op {
                     Some(situation) => {
                         update_health(&mut health_vec, &situation.health);
@@ -143,14 +158,8 @@ pub fn game() {
                         println!("");
 
                         selected_index = input.trim().parse().unwrap_or(99);
+                        choose_path(&situation.options, selected_index, &mut current_tag);
 
-                        let option_selected = situation.options.get(selected_index);
-                        match option_selected {
-                            Some(value) => {
-                                current_tag = &value.tag;
-                            },
-                            None => println!("Camino incorrecto :c, elige otro :D"),
-                        }
                         input.clear();
                     }, 
                     None => {
